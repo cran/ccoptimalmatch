@@ -1,0 +1,17 @@
+6786f992696f878b8c3cb8269d524948 *DESCRIPTION
+4df6f825272716281659a8b553cdb480 *NAMESPACE
+951c4ff720223a4077476940b60bace8 *R/Package_documentation.R
+d71ea449c10be7931c1ceb9bc36e50f5 *R/being_processed_data.R
+42a1747a16f7875e37138f818ffb57fa *R/funs_with_without_repla.R
+ea7968c0a3b83346b510b67413e6bc1d *R/not_processed_data.R
+1f4c01912113ca66f33572e8ea848cf0 *build/vignette.rds
+24caf0b05abaf56d69211471026342ac *data/being_processed.csv
+b2b4c0c3bb37ef1d5753b2a25e126c45 *data/not_processed.csv
+58f9c9496d9dac7b3e3606b5256d5838 *inst/doc/ccoptimalmatching_vignette.R
+5de4b9a65ae99a426e681c903a6e0cd5 *inst/doc/ccoptimalmatching_vignette.Rmd
+81ce95075b24bac1748836797176abdb *inst/doc/ccoptimalmatching_vignette.html
+a8bcc87329a5edd5e273cf0846353727 *man/being_processed.Rd
+d85a0241455310feedda56993a14636d *man/ccoptimalmatch.Rd
+81d8ab1b656b818f5c7692aa8f1a48cf *man/not_processed.Rd
+df1cdccc88cb76ea95b5e7b85c8a7ec9 *man/optimal_matching.Rd
+5de4b9a65ae99a426e681c903a6e0cd5 *vignettes/ccoptimalmatching_vignette.Rmd

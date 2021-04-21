@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Pavlos Mamouris, Vahid Nassiri" />
+
+
+<title>Matching case-controls in R using the ccoptimalmatch package</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Matching case-controls in <em>R</em> using the <code>ccoptimalmatch</code> package</h1>
+<h4 class="author">Pavlos Mamouris, Vahid Nassiri</h4>
+
+
+
+<div id="the-r-environment" class="section level1">
+<h1>The <em>R</em> Environment</h1>
+<p>R software will be used throughout this vignette. The <em>R</em> statistical software is freely available and you may download and install it for Windows, Mac, and Linux systems from: <a href="https://www.r-project.org" class="uri">https://www.r-project.org</a>.</p>
+<p><em>R</em> is a user-friendly platform. For example, you can type in the console:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="dv">1</span> <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+</div>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<div id="install-the-ccoptimalmatch-package" class="section level2">
+<h2>Install the <code>ccoptimalmatch</code> package</h2>
+<p>You can install the optccmatch package directly from R:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">install.packages</span>(<span class="st">&quot;ccoptimalmatch&quot;</span>)</span></code></pre></div>
+</div>
+<div id="load-the-ccoptimalmatch-package" class="section level2">
+<h2>Load the <code>ccoptimalmatch</code> package</h2>
+<p>After you install the <code>ccoptimalmatch</code> package, you can load it to use its functions using the library function: Note that you have to load the <em>R</em> package that you need to use each time you start a new <em>R</em> session.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">library</span>(ccoptimalmatch)</span></code></pre></div>
+</div>
+<div id="datasets" class="section level2">
+<h2>Datasets</h2>
+<!--  To simply load the data -->
+<p>We have two data-sets in this package, namely the “not_processed” and the “being_processed” data-set. The “not_processed” data-set, as the name reveals, is a raw data-set containing the cases, controls, patient_ID and other relevant variables. After different pre-processing steps, we end up to the “being_processed” data, which is the one to use in the algorithm. To see the first 6 rows of the “being_processed” data, enter:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">head</span>(being_processed)</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="co">#&gt;   cluster_case     Patient_Id case_control case_ind  JCG entry_year CI age_diff</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="co">#&gt; 1       case_1    Patient_608         case        1 2011       2009  1        0</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="co">#&gt; 2       case_1   Patient_4047      control        0 2011       2009  2        1</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="co">#&gt; 3      case_10   Patient_6326         case        1 2013       2010  1        0</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="co">#&gt; 4      case_10  Patient_86161      control        0 2013       2010  0        0</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="co">#&gt; 5      case_10 Patient_163561      control        0 2013       2010  0        0</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a><span class="co">#&gt; 6      case_10  Patient_19087      control        0 2013       2010  0        1</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="co">#&gt;   fup_diff total_control_per_case freq_of_controls</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="co">#&gt; 1        0                      1                1</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#&gt; 2        0                      1                1</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co">#&gt; 3        0                      4                1</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="co">#&gt; 4        0                      4                1</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a><span class="co">#&gt; 5        0                      4                1</span></span>
+<span id="cb4-15"><a href="#cb4-15"></a><span class="co">#&gt; 6        0                      4                1</span></span></code></pre></div>
+<p>If you wish to investigate the data-set and its attributes, then use the help function:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">help</span>(<span class="st">&quot;being_processed&quot;</span>)</span></code></pre></div>
+<p>You can directly access a variable within this data frame as follows:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>being_processed<span class="op">$</span>case_control</span></code></pre></div>
+<p>For example, let us tabulate this variable and investigate the number of cases and controls:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">table</span>(being_processed<span class="op">$</span>case_control)</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt; </span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co">#&gt;    case control </span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co">#&gt;     202   10462</span></span></code></pre></div>
+<p>“case_control” is a dummy variable indicating whether the patient is a case or a control. There are 202 cases and 10,462 available controls to pool.</p>
+</div>
+</div>
+<div id="prepare-the-dataset-to-be-analyzed" class="section level1">
+<h1>Prepare the dataset to be analyzed</h1>
+<div id="raw-data" class="section level2">
+<h2>Raw data</h2>
+<p>To see the first 6 rows of the “not_processed” data: <!--  To simply load the data --></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">head</span>(not_processed)</span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="co">#&gt;   Patient_Id  JCG Birth_Year Practice_Id Gender case_control entry_year foll_up</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt; 1 Patient_16 2014       1977  Practice_1      F      control       2014       0</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt; 2 Patient_16 2015       1977  Practice_1      F      control       2014       1</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt; 3 Patient_18 2014       1996  Practice_2      M      control       2014       0</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt; 4 Patient_19 2010       1963  Practice_3      F      control       2000      10</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt; 5 Patient_19 2011       1963  Practice_3      F      control       2000      11</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt; 6 Patient_19 2012       1963  Practice_3      F      control       2000      12</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt;   CI</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt; 1  0</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co">#&gt; 2  0</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co">#&gt; 3  0</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt; 4  0</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt; 5  1</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="co">#&gt; 6  1</span></span></code></pre></div>
+<p>Let us tabulate the “case_control” variable and investigate the number of cases and controls in the “not_processed” data-set this time:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">table</span>(not_processed<span class="op">$</span>case_control)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="co">#&gt; </span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="co">#&gt;    case control </span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt;     202   45817</span></span></code></pre></div>
+<p>You can observe that we have 202 cases and 45,817 available controls to pool. Controls might be duplicated since a control could appear up to 6 times, from 2010 until 2015. The unique controls to pool are 13,491.</p>
+<p>The following steps are necessary to pre-process the “not_processed” data-set in a format that can be used by our algorithm:</p>
+</div>
+<div id="step-1-exact-matching-on-several-variables" class="section level2">
+<h2>Step 1: Exact Matching on several variables</h2>
+<p>We start by defining the subsets. In order to define the subsets, we filter by the “cases”, take the distinct combination of exact variables (Gender, JCG and Practice_Id), and create the new variable “subset”. Finally, we select only 4 relevant variables (Gender, JCG, Practice_Id, subset):</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>create_subset &lt;-<span class="st"> </span>not_processed <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="st">                 </span><span class="kw">filter</span>(case_control <span class="op">==</span><span class="st">&quot;case&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="st">                 </span><span class="kw">arrange</span>(Practice_Id, Gender, JCG) <span class="op">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="st">                 </span><span class="kw">distinct</span>(Gender, JCG, Practice_Id, <span class="dt">.keep_all =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="st">                 </span><span class="kw">mutate</span>(<span class="dt">subset =</span> <span class="dv">1</span><span class="op">:</span><span class="kw">n</span>()) <span class="op">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="st">                 </span><span class="kw">select</span>(Gender, JCG, Practice_Id, subset)</span></code></pre></div>
+<p>There were created n (=26) subsets, where a subset is defined as a factorial combination of the exact variables. For example, subset 1 contains females that visited practice 1 in year 2010, subset 2 contains females that visited practice 1 in year 2011, subset 3 contains females that visited practice 1 in year 2012 up to subset n, which is the last factorial combination of the exact variables:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">head</span>(create_subset)</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&gt;   Gender  JCG Practice_Id subset</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="co">#&gt; 1      F 2010  Practice_1      1</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; 2      F 2011  Practice_1      2</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co">#&gt; 3      F 2012  Practice_1      3</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">#&gt; 4      F 2013  Practice_1      4</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; 5      F 2014  Practice_1      5</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co">#&gt; 6      F 2015  Practice_1      6</span></span></code></pre></div>
+<p>We merge the data that contains the “subset” variable with the data that contains the cases only:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>case_with_subset &lt;-<span class="st"> </span>not_processed <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="st">                          </span><span class="kw">filter</span>(case_control <span class="op">==</span><span class="st">&quot;case&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="st">                           </span><span class="kw">full_join</span>(create_subset, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;Gender&quot;</span>, <span class="st">&quot;JCG&quot;</span>, <span class="st">&quot;Practice_Id&quot;</span>))</span></code></pre></div>
+<p>We merge the data that contains the “subset” variable with the data that contains the controls only:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>control_with_subset &lt;-<span class="st"> </span>not_processed <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="st">                             </span><span class="kw">filter</span>(case_control <span class="op">==</span><span class="st">&quot;control&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="st">                             </span><span class="kw">right_join</span>(create_subset, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;Gender&quot;</span>, <span class="st">&quot;JCG&quot;</span>, <span class="st">&quot;Practice_Id&quot;</span>))</span></code></pre></div>
+<p>Finally we bind the cases and the controls, which will have now the new variable “subset”:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>not_processed &lt;-<span class="st"> </span><span class="kw">rbind</span>(case_with_subset,control_with_subset)</span></code></pre></div>
+<p>Let us tabulate the “case_control” variable again:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">table</span>(not_processed<span class="op">$</span>case_control)</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#&gt; </span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="co">#&gt;    case control </span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="co">#&gt;     202   36518</span></span></code></pre></div>
+<p>As we observe, the number of controls have decreased to 36,518 and the unique controls to 12,643. The gain from exact matching is that by shifting the analysis from one big data-set to several small sub-sets, the computational burden decreases substantially. There were 13,491-12,643 = 848 controls that couldn’t be matched to any of the cases, thus are excluded.</p>
+</div>
+<div id="step-2-create-artificial-observations-and-select-the-range-of-variables" class="section level2">
+<h2>Step 2: Create artificial observations and select the range of variables</h2>
+<p>Firstly, we split the data-set in cases and controls and create a variable “cluster_case” to depict the cases separately. The “cluster_case” variable will have as many levels as the total number of cases, i.e. 202 in our example. For that purpose, the “cluster_case” will be empty in the controls data-set but have the names of the cases in the cases data-set:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>bdd_controls &lt;-<span class="st"> </span>not_processed[not_processed<span class="op">$</span>case_control<span class="op">==</span><span class="st">&quot;control&quot;</span>,]</span>
+<span id="cb16-2"><a href="#cb16-2"></a>bdd_controls<span class="op">$</span>cluster_case &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>bdd_cases &lt;-<span class="st"> </span>not_processed[not_processed<span class="op">$</span>case_control<span class="op">==</span><span class="st">&quot;case&quot;</span>,]</span>
+<span id="cb16-4"><a href="#cb16-4"></a>bdd_cases<span class="op">$</span>cluster_case &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&quot;case&quot;</span>,<span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(bdd_cases),<span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>)</span></code></pre></div>
+<p>Next, we bind the cases and the controls, which will have now the new variable “cluster_case” and create the variable age:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>not_processed &lt;-<span class="st"> </span><span class="kw">rbind</span>(bdd_cases,bdd_controls)</span>
+<span id="cb17-2"><a href="#cb17-2"></a>not_processed<span class="op">$</span>age &lt;-<span class="st"> </span>not_processed<span class="op">$</span>JCG<span class="op">-</span>not_processed<span class="op">$</span>Birth_Year </span></code></pre></div>
+<p>After creating the variable “cluster_case”, we split again the cases and controls into two different data-sets:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>bdd_cases &lt;-<span class="st"> </span>not_processed[not_processed<span class="op">$</span>case_control<span class="op">==</span><span class="st">&quot;case&quot;</span>,]</span>
+<span id="cb18-2"><a href="#cb18-2"></a>bdd_control &lt;-<span class="st"> </span>not_processed[not_processed<span class="op">$</span>case_control<span class="op">==</span><span class="st">&quot;control&quot;</span>,]</span></code></pre></div>
+<p>Next, we create an empty data-frame and a unique list of the variable “cluster_case”:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>bdd_temp &lt;-<span class="st"> </span><span class="kw">data.frame</span>()</span>
+<span id="cb19-2"><a href="#cb19-2"></a>list_p &lt;-<span class="st"> </span><span class="kw">unique</span>(bdd_cases<span class="op">$</span>cluster_case)</span></code></pre></div>
+<p>Below it is the loop to generate the pseudo-observations for controls, which will be explained in details. We start by identifying in which subset each case belongs. Next, we check which controls are in the same subset and bind those controls to the case. For example, subset 1 has 2 cases and 1,523 controls. By creating pseudo-observations for controls, subset 1 will have 2 cases and 3,046 controls. Finally, we select the range for the age and follow-up. For demonstration purposes, we decided that an absolute difference of age smaller than 2 is acceptable and that the follow-up time between cases and controls is exact. Since the 2 cases are different in subset 1 in terms of age and follow-up, each case will end up with a different number of controls available to pool:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(list_p)){</span>
+<span id="cb20-2"><a href="#cb20-2"></a> temp &lt;-<span class="st"> </span>bdd_cases[bdd_cases<span class="op">$</span>cluster_case<span class="op">==</span>list_p[i],]</span>
+<span id="cb20-3"><a href="#cb20-3"></a> subset_identified &lt;-<span class="st"> </span>temp<span class="op">$</span>subset</span>
+<span id="cb20-4"><a href="#cb20-4"></a> temp0 &lt;-<span class="st"> </span>bdd_control[bdd_control<span class="op">$</span>subset<span class="op">==</span>temp<span class="op">$</span>subset,]</span>
+<span id="cb20-5"><a href="#cb20-5"></a> temp_final &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,temp0)</span>
+<span id="cb20-6"><a href="#cb20-6"></a> temp_final<span class="op">$</span>cluster_case &lt;-<span class="st"> </span>list_p[i]</span>
+<span id="cb20-7"><a href="#cb20-7"></a> temp_final=temp_final <span class="op">%&gt;%</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="st">            </span><span class="kw">group_by</span>(cluster_case) <span class="op">%&gt;%</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="st">            </span><span class="kw">mutate</span>(<span class="dt">age_diff =</span> <span class="kw">abs</span>(age <span class="op">-</span><span class="st"> </span>age[case_control<span class="op">==</span><span class="st">&quot;case&quot;</span>]),</span>
+<span id="cb20-10"><a href="#cb20-10"></a>            <span class="dt">fup_diff =</span> foll_up <span class="op">-</span><span class="st"> </span>foll_up[case_control<span class="op">==</span><span class="st">&quot;case&quot;</span>])</span>
+<span id="cb20-11"><a href="#cb20-11"></a> temp_final<span class="op">$</span>age_fup &lt;-<span class="st"> </span><span class="kw">ifelse</span>(temp_final<span class="op">$</span>age_diff<span class="op">&lt;=</span><span class="dv">2</span><span class="op">&amp;</span>temp_final<span class="op">$</span>fup_diff<span class="op">==</span><span class="dv">0</span>,<span class="st">&quot;accept&quot;</span>,<span class="st">&quot;delete&quot;</span>)</span>
+<span id="cb20-12"><a href="#cb20-12"></a> temp_final &lt;-<span class="st"> </span>temp_final[temp_final<span class="op">$</span>age_fup<span class="op">==</span><span class="st">&quot;accept&quot;</span>,]</span>
+<span id="cb20-13"><a href="#cb20-13"></a> temp_final<span class="op">$</span>age_fup &lt;-<span class="st"> </span><span class="ot">NULL</span></span>
+<span id="cb20-14"><a href="#cb20-14"></a> bdd_temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(bdd_temp,temp_final)</span>
+<span id="cb20-15"><a href="#cb20-15"></a>}</span></code></pre></div>
+<p>Let us tabulate the “case_control” variable again:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">table</span>(bdd_temp<span class="op">$</span>case_control)</span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="co">#&gt; </span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="co">#&gt;    case control </span></span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="co">#&gt;     202   10462</span></span></code></pre></div>
+<p>The number of duplicated controls have decreased to 202 and the unique controls to identify are 10,462. Now, all the remaining controls are those that have at most 2 years difference from the case in the same subset, and also have the exact follow up.</p>
+</div>
+<div id="step-3-create-the-variables-total-controls-per-case-and-frequency-of-controls" class="section level2">
+<h2>Step 3: Create the variables “total controls per case” and “frequency of controls”</h2>
+<p>We create the variable “total controls per case”, which depicts the total pool of controls available for each case. We also create the variable “case_ind” which takes the value 1 if the patient is a case and 0 if the patient is a control. Lastly, we select only relevant variables:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>bdd_temp =<span class="st"> </span>bdd_temp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(cluster_case) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">total_control_per_case =</span> <span class="kw">n</span>()<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb22-2"><a href="#cb22-2"></a>bdd_temp<span class="op">$</span>case_ind &lt;-<span class="st"> </span><span class="kw">ifelse</span>(bdd_temp<span class="op">$</span>case_control<span class="op">==</span><span class="st">&quot;case&quot;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb22-3"><a href="#cb22-3"></a>bdd_temp &lt;-<span class="st"> </span><span class="kw">subset</span>(bdd_temp, <span class="dt">select=</span><span class="kw">c</span>(cluster_case, Patient_Id, case_control, case_ind,</span>
+<span id="cb22-4"><a href="#cb22-4"></a>                      JCG, entry_year, CI, age_diff, fup_diff, total_control_per_case))</span></code></pre></div>
+<p>The variable “frequency of controls” depicts how many times a control is assigned to a case:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>bdd_temp =<span class="st"> </span>bdd_temp <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(Patient_Id) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">freq_of_controls =</span> <span class="kw">n</span>())</span></code></pre></div>
+<p>Let us have a glimpse of the data by looking at the 10 first rows:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">head</span>(bdd_temp, <span class="dv">10</span>)</span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="co">#&gt;    cluster_case    Patient_Id case_control case_ind  JCG entry_year CI age_diff</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="co">#&gt; 1        case_1   Patient_608         case        1 2011       2009  1        0</span></span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="co">#&gt; 2        case_1  Patient_4047      control        0 2011       2009  2        1</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a><span class="co">#&gt; 3        case_2   Patient_681         case        1 2011       2000  2        0</span></span>
+<span id="cb24-6"><a href="#cb24-6"></a><span class="co">#&gt; 4        case_2  Patient_3833      control        0 2011       2000  4        2</span></span>
+<span id="cb24-7"><a href="#cb24-7"></a><span class="co">#&gt; 5        case_2  Patient_8934      control        0 2011       2000  1        1</span></span>
+<span id="cb24-8"><a href="#cb24-8"></a><span class="co">#&gt; 6        case_2 Patient_10023      control        0 2011       2000  2        0</span></span>
+<span id="cb24-9"><a href="#cb24-9"></a><span class="co">#&gt; 7        case_2 Patient_11680      control        0 2011       2000  2        1</span></span>
+<span id="cb24-10"><a href="#cb24-10"></a><span class="co">#&gt; 8        case_2 Patient_13330      control        0 2011       2000  0        1</span></span>
+<span id="cb24-11"><a href="#cb24-11"></a><span class="co">#&gt; 9        case_2 Patient_14968      control        0 2011       2000  2        2</span></span>
+<span id="cb24-12"><a href="#cb24-12"></a><span class="co">#&gt; 10       case_2 Patient_15592      control        0 2011       2000  0        2</span></span>
+<span id="cb24-13"><a href="#cb24-13"></a><span class="co">#&gt;    fup_diff total_control_per_case freq_of_controls</span></span>
+<span id="cb24-14"><a href="#cb24-14"></a><span class="co">#&gt; 1         0                      1                1</span></span>
+<span id="cb24-15"><a href="#cb24-15"></a><span class="co">#&gt; 2         0                      1                1</span></span>
+<span id="cb24-16"><a href="#cb24-16"></a><span class="co">#&gt; 3         0                     73                1</span></span>
+<span id="cb24-17"><a href="#cb24-17"></a><span class="co">#&gt; 4         0                     73                8</span></span>
+<span id="cb24-18"><a href="#cb24-18"></a><span class="co">#&gt; 5         0                     73                6</span></span>
+<span id="cb24-19"><a href="#cb24-19"></a><span class="co">#&gt; 6         0                     73                5</span></span>
+<span id="cb24-20"><a href="#cb24-20"></a><span class="co">#&gt; 7         0                     73                7</span></span>
+<span id="cb24-21"><a href="#cb24-21"></a><span class="co">#&gt; 8         0                     73                3</span></span>
+<span id="cb24-22"><a href="#cb24-22"></a><span class="co">#&gt; 9         0                     73                8</span></span>
+<span id="cb24-23"><a href="#cb24-23"></a><span class="co">#&gt; 10        0                     73                8</span></span></code></pre></div>
+<p>Some first conclusions can be drawn:</p>
+<ol style="list-style-type: decimal">
+<li>For the controls, look at control “Patient_13330”. His/her frequency is 3, indicating that he/she is available for 3 cases and also that appears in the data-set 3 times. This is important because the controls with the lowest frequency will be matched first, thus leaving the controls with highest frequency available for the next cases.</li>
+<li>We observe that the ordering is not the most optimal yet since the controls are not as close as they should be to the cases in terms of “age-difference” and “frequency of controls”, which brings us to the next step.</li>
+</ol>
+</div>
+<div id="step-4-order-variables" class="section level2">
+<h2>Step 4: Order variables</h2>
+<p>Ordering the variables in a correct order is of utter importance. For simplicity, assuming that there are three variables, namely ”age-difference”, ”follow-up difference” and ”frequency of controls”. The data-set should be ordered by the variables ”case”, ”control”, ”follow-up difference”, ”age-difference” and lastly by ”frequency of controls”. The variable ”follow-up difference” appears before ”age-difference” since the ”follow-up difference” has more weight (importance) than the ”age-difference”.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>bdd_temp&lt;-bdd_temp[<span class="kw">order</span>(bdd_temp<span class="op">$</span>cluster_case,bdd_temp<span class="op">$</span>case_control,bdd_temp<span class="op">$</span>fup_diff,</span>
+<span id="cb25-2"><a href="#cb25-2"></a>                         bdd_temp<span class="op">$</span>age_diff,bdd_temp<span class="op">$</span>freq_of_controls),]</span></code></pre></div>
+<p>By checking the 10 first rows, we can see that the closest controls are ordered after the case, indicating that they are optimal (have the same age-difference). Also, we observe that the “frequency of controls” is ordered which allows the control with the lowest frequency to be matched first:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">head</span>(bdd_temp, <span class="dv">10</span>)</span>
+<span id="cb26-2"><a href="#cb26-2"></a><span class="co">#&gt;      cluster_case     Patient_Id case_control case_ind  JCG entry_year CI</span></span>
+<span id="cb26-3"><a href="#cb26-3"></a><span class="co">#&gt; 1          case_1    Patient_608         case        1 2011       2009  1</span></span>
+<span id="cb26-4"><a href="#cb26-4"></a><span class="co">#&gt; 2          case_1   Patient_4047      control        0 2011       2009  2</span></span>
+<span id="cb26-5"><a href="#cb26-5"></a><span class="co">#&gt; 527       case_10   Patient_6326         case        1 2013       2010  1</span></span>
+<span id="cb26-6"><a href="#cb26-6"></a><span class="co">#&gt; 529       case_10  Patient_86161      control        0 2013       2010  0</span></span>
+<span id="cb26-7"><a href="#cb26-7"></a><span class="co">#&gt; 530       case_10 Patient_163561      control        0 2013       2010  0</span></span>
+<span id="cb26-8"><a href="#cb26-8"></a><span class="co">#&gt; 528       case_10  Patient_19087      control        0 2013       2010  0</span></span>
+<span id="cb26-9"><a href="#cb26-9"></a><span class="co">#&gt; 531       case_10 Patient_208844      control        0 2013       2010  0</span></span>
+<span id="cb26-10"><a href="#cb26-10"></a><span class="co">#&gt; 5190     case_100  Patient_99675         case        1 2014       2000  5</span></span>
+<span id="cb26-11"><a href="#cb26-11"></a><span class="co">#&gt; 5226     case_100  Patient_99368      control        0 2014       2000  0</span></span>
+<span id="cb26-12"><a href="#cb26-12"></a><span class="co">#&gt; 5241     case_100 Patient_123241      control        0 2014       2000  0</span></span>
+<span id="cb26-13"><a href="#cb26-13"></a><span class="co">#&gt;      age_diff fup_diff total_control_per_case freq_of_controls</span></span>
+<span id="cb26-14"><a href="#cb26-14"></a><span class="co">#&gt; 1           0        0                      1                1</span></span>
+<span id="cb26-15"><a href="#cb26-15"></a><span class="co">#&gt; 2           1        0                      1                1</span></span>
+<span id="cb26-16"><a href="#cb26-16"></a><span class="co">#&gt; 527         0        0                      4                1</span></span>
+<span id="cb26-17"><a href="#cb26-17"></a><span class="co">#&gt; 529         0        0                      4                1</span></span>
+<span id="cb26-18"><a href="#cb26-18"></a><span class="co">#&gt; 530         0        0                      4                1</span></span>
+<span id="cb26-19"><a href="#cb26-19"></a><span class="co">#&gt; 528         1        0                      4                1</span></span>
+<span id="cb26-20"><a href="#cb26-20"></a><span class="co">#&gt; 531         1        0                      4                1</span></span>
+<span id="cb26-21"><a href="#cb26-21"></a><span class="co">#&gt; 5190        0        0                     89                1</span></span>
+<span id="cb26-22"><a href="#cb26-22"></a><span class="co">#&gt; 5226        0        0                     89                1</span></span>
+<span id="cb26-23"><a href="#cb26-23"></a><span class="co">#&gt; 5241        0        0                     89                2</span></span></code></pre></div>
+</div>
+</div>
+<div id="analysis-of-the-data" class="section level1">
+<h1>Analysis of the data</h1>
+<p>We have the data ready to be used for the algorithm. The “optimal_matching” function generates an optimal match between cases and controls in an iterative and computational efficient way. For demonstration purposes, we select 4 controls to match, and we perform the analysis without replacement:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>final_data &lt;-<span class="st"> </span><span class="kw">optimal_matching</span>(bdd_temp, <span class="dt">n_con=</span><span class="dv">4</span>, cluster_case, Patient_Id, </span>
+<span id="cb27-2"><a href="#cb27-2"></a>                               total_control_per_case, case_control, <span class="dt">with_replacement =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<p>Below we summarise the steps that explain how the algorithm works.</p>
+<ol style="list-style-type: decimal">
+<li>Start of round 1. Select one control per case per iteration. We select the first control which is the closest, thus the most optimal.</li>
+<li>Split between duplicated and unique controls, and assign the duplicated controls to the case that has less available controls to pool.</li>
+<li>Exclude cases that already have at least 1 control. Also exclude controls that are matched to a case.</li>
+<li>Repeat steps 1-3 until all cases have at least 1 control (where applicable).</li>
+<li>End of round 1. Continue to round 2 up to round n, where n is the controls that the user wants to match. If 4 controls are needed, then we have 4 rounds, if 10 controls are needed we have 10 rounds.</li>
+</ol>
+<p>We can see the first 20 rows:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>final_data &lt;-<span class="st"> </span>final_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(cluster_case)</span>
+<span id="cb28-2"><a href="#cb28-2"></a><span class="kw">head</span>(final_data,<span class="dv">20</span>)</span>
+<span id="cb28-3"><a href="#cb28-3"></a><span class="co">#&gt;    cluster_case     Patient_Id case_control case_ind  JCG entry_year CI</span></span>
+<span id="cb28-4"><a href="#cb28-4"></a><span class="co">#&gt; 1        case_1    Patient_608         case        1 2011       2009  1</span></span>
+<span id="cb28-5"><a href="#cb28-5"></a><span class="co">#&gt; 2        case_1   Patient_4047      control        0 2011       2009  2</span></span>
+<span id="cb28-6"><a href="#cb28-6"></a><span class="co">#&gt; 3       case_10   Patient_6326         case        1 2013       2010  1</span></span>
+<span id="cb28-7"><a href="#cb28-7"></a><span class="co">#&gt; 4       case_10  Patient_86161      control        0 2013       2010  0</span></span>
+<span id="cb28-8"><a href="#cb28-8"></a><span class="co">#&gt; 5       case_10 Patient_163561      control        0 2013       2010  0</span></span>
+<span id="cb28-9"><a href="#cb28-9"></a><span class="co">#&gt; 6       case_10  Patient_19087      control        0 2013       2010  0</span></span>
+<span id="cb28-10"><a href="#cb28-10"></a><span class="co">#&gt; 7       case_10 Patient_208844      control        0 2013       2010  0</span></span>
+<span id="cb28-11"><a href="#cb28-11"></a><span class="co">#&gt; 8      case_100  Patient_99675         case        1 2014       2000  5</span></span>
+<span id="cb28-12"><a href="#cb28-12"></a><span class="co">#&gt; 9      case_100  Patient_99368      control        0 2014       2000  0</span></span>
+<span id="cb28-13"><a href="#cb28-13"></a><span class="co">#&gt; 10     case_100 Patient_102769      control        0 2014       2000  2</span></span>
+<span id="cb28-14"><a href="#cb28-14"></a><span class="co">#&gt; 11     case_100 Patient_213631      control        0 2014       2000  2</span></span>
+<span id="cb28-15"><a href="#cb28-15"></a><span class="co">#&gt; 12     case_100 Patient_126384      control        0 2014       2000  0</span></span>
+<span id="cb28-16"><a href="#cb28-16"></a><span class="co">#&gt; 13     case_101 Patient_102927         case        1 2015       2000  4</span></span>
+<span id="cb28-17"><a href="#cb28-17"></a><span class="co">#&gt; 14     case_101  Patient_38270      control        0 2015       2000  1</span></span>
+<span id="cb28-18"><a href="#cb28-18"></a><span class="co">#&gt; 15     case_101  Patient_96569      control        0 2015       2000  2</span></span>
+<span id="cb28-19"><a href="#cb28-19"></a><span class="co">#&gt; 16     case_101 Patient_218022      control        0 2015       2000  2</span></span>
+<span id="cb28-20"><a href="#cb28-20"></a><span class="co">#&gt; 17     case_101 Patient_215336      control        0 2015       2000  3</span></span>
+<span id="cb28-21"><a href="#cb28-21"></a><span class="co">#&gt; 18     case_102 Patient_104299         case        1 2013       2000  0</span></span>
+<span id="cb28-22"><a href="#cb28-22"></a><span class="co">#&gt; 19     case_102 Patient_154077      control        0 2013       2000  1</span></span>
+<span id="cb28-23"><a href="#cb28-23"></a><span class="co">#&gt; 20     case_102 Patient_198652      control        0 2013       2000  0</span></span>
+<span id="cb28-24"><a href="#cb28-24"></a><span class="co">#&gt;    age_diff fup_diff total_control_per_case freq_of_controls</span></span>
+<span id="cb28-25"><a href="#cb28-25"></a><span class="co">#&gt; 1         0        0                      1                1</span></span>
+<span id="cb28-26"><a href="#cb28-26"></a><span class="co">#&gt; 2         1        0                      1                1</span></span>
+<span id="cb28-27"><a href="#cb28-27"></a><span class="co">#&gt; 3         0        0                      4                1</span></span>
+<span id="cb28-28"><a href="#cb28-28"></a><span class="co">#&gt; 4         0        0                      4                1</span></span>
+<span id="cb28-29"><a href="#cb28-29"></a><span class="co">#&gt; 5         0        0                      3                1</span></span>
+<span id="cb28-30"><a href="#cb28-30"></a><span class="co">#&gt; 6         1        0                      2                1</span></span>
+<span id="cb28-31"><a href="#cb28-31"></a><span class="co">#&gt; 7         1        0                      1                1</span></span>
+<span id="cb28-32"><a href="#cb28-32"></a><span class="co">#&gt; 8         0        0                     89                1</span></span>
+<span id="cb28-33"><a href="#cb28-33"></a><span class="co">#&gt; 9         0        0                     89                1</span></span>
+<span id="cb28-34"><a href="#cb28-34"></a><span class="co">#&gt; 10        0        0                     80                3</span></span>
+<span id="cb28-35"><a href="#cb28-35"></a><span class="co">#&gt; 11        0        0                     68               12</span></span>
+<span id="cb28-36"><a href="#cb28-36"></a><span class="co">#&gt; 12        1        0                     57                2</span></span>
+<span id="cb28-37"><a href="#cb28-37"></a><span class="co">#&gt; 13        0        0                     62                1</span></span>
+<span id="cb28-38"><a href="#cb28-38"></a><span class="co">#&gt; 14        0        0                     62                1</span></span>
+<span id="cb28-39"><a href="#cb28-39"></a><span class="co">#&gt; 15        0        0                     58                1</span></span>
+<span id="cb28-40"><a href="#cb28-40"></a><span class="co">#&gt; 16        0        0                     52                1</span></span>
+<span id="cb28-41"><a href="#cb28-41"></a><span class="co">#&gt; 17        0        0                     44                3</span></span>
+<span id="cb28-42"><a href="#cb28-42"></a><span class="co">#&gt; 18        0        0                     99                1</span></span>
+<span id="cb28-43"><a href="#cb28-43"></a><span class="co">#&gt; 19        0        0                     99                1</span></span>
+<span id="cb28-44"><a href="#cb28-44"></a><span class="co">#&gt; 20        0        0                     97                1</span></span></code></pre></div>
+<p>If we want to see how many controls are matched for each case, then:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>final_data =<span class="st"> </span>final_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(cluster_case) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">total_control_matched =</span> <span class="kw">n</span>()<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb29-2"><a href="#cb29-2"></a><span class="kw">table</span>(final_data<span class="op">$</span>case_control,final_data<span class="op">$</span>total_control_matched)</span>
+<span id="cb29-3"><a href="#cb29-3"></a><span class="co">#&gt;          </span></span>
+<span id="cb29-4"><a href="#cb29-4"></a><span class="co">#&gt;             1   2   3   4</span></span>
+<span id="cb29-5"><a href="#cb29-5"></a><span class="co">#&gt;   case     16   9   6 161</span></span>
+<span id="cb29-6"><a href="#cb29-6"></a><span class="co">#&gt;   control  16  18  18 644</span></span></code></pre></div>
+<p>16 cases have only 1 control, 9 cases have 2 controls, 6 cases have 3 controls and finally 161 cases have 4 controls, using the criteria above.</p>
+</div>
+<div id="extensions-and-summary" class="section level1">
+<h1>Extensions and Summary</h1>
+<p>In the clinical case described in the previous sections, we used 3 exact variables (Gender, JCG, Practice_Id), age and follow-up. This algorithm is very flexible in accommodating even more continuous and exact variables, and as a matter of fact, the more criteria are added, the less the computational burden is. It is very useful to operate different scenarios of matching by adjusting the age range, the follow-up time and the Comorbidity Index.</p>
+<p>The user (epidemiologist, researcher) has available a 1:n case-control matching algorithm in an optimal, efficient, and fast way using a multi-step (iterative) procedure for traditional and nested case-control studies.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
